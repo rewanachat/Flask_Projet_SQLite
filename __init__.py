@@ -82,6 +82,9 @@ if __name__ == "__main__":
 
 @app.route("/fiche_nom/<nom>")
 def fiche_nom(nom):
+    if not session.get("user"):
+        return redirect("/auth_user")
+
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
 
@@ -90,4 +93,4 @@ def fiche_nom(nom):
 
     conn.close()
 
-    return render_template("fiche_nom.html", data=data)
+    return render_template("fiche_nom.html", data=data))
