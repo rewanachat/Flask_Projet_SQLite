@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 
 app = Flask(__name__)
@@ -61,9 +61,6 @@ def enregistrer_client():
     conn.close()
     return redirect('/consultation/')
 
-# -------------------------
-#   ROUTE SECURISEE
-# -------------------------
 @app.route("/fiche_nom/<nom>")
 def fiche_nom(nom):
     if not session.get("user"):
@@ -74,12 +71,8 @@ def fiche_nom(nom):
     cur.execute("SELECT * FROM clients WHERE nom = ?", (nom,))
     data = cur.fetchall()
     conn.close()
-
     return render_template("fiche_nom.html", data=data)
 
-# -------------------------
-#   AUTH USER / 12345
-# -------------------------
 @app.route("/auth_user", methods=["GET", "POST"])
 def auth_user():
     if request.method == "POST":
