@@ -79,3 +79,15 @@ def enregistrer_client():
                                                                                                                                        
 if __name__ == "__main__":
   app.run(debug=True)
+
+@app.route("/fiche_nom/<nom>")
+def fiche_nom(nom):
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM clients WHERE nom = ?", (nom,))
+    data = cur.fetchall()
+
+    conn.close()
+
+    return render_template("fiche_nom.html", data=data)
