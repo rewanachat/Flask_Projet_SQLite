@@ -94,3 +94,16 @@ def fiche_nom(nom):
     conn.close()
 
     return render_template("fiche_nom.html", data=data))
+    @app.route("/auth_user", methods=["GET", "POST"])
+def auth_user():
+    if request.method == "POST":
+        login = request.form["login"]
+        password = request.form["password"]
+
+        if login == "user" and password == "12345":
+            session["user"] = True
+            return redirect("/fiche_nom/test")
+        else:
+            return "Mauvais identifiants"
+
+    return render_template("auth_user.html")
