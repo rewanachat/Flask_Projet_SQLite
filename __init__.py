@@ -93,7 +93,7 @@ def fiche_nom(nom):
 
     conn.close()
 
-    return render_template("fiche_nom.html", data=data))
+    return render_template("fiche_nom.html", data=data)
     @app.route("/auth_user", methods=["GET", "POST"])
 def auth_user():
     if request.method == "POST":
