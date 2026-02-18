@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Liste des tâches</title></head>
+<body>
+  <h1>Liste des tâches</h1>
+  <a href="{{ url_for('ajouter_tache') }}">Ajouter une tâche</a>
+  <ul>
+    {% for t in tasks %}
+      <li><strong>{{ t['title'] }}</strong> - {{ t['description'] }} - {{ t['due_date'] }}</li>
+    {% else %}
+      <li>Aucune tâche</li>
+    {% endfor %}
+  </ul>
+</body>
+</html>
