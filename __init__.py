@@ -1,8 +1,29 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, g
+import os
 import sqlite3
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+
+# ---------- Configuration base de données ----------
+BASE_DIR = os.path.dirname(__file__)
+DATABASE = os.path.join(BASE_DIR, 'data', 'tasks.sqlite')
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        # s'assurer que le dossier data existe
+        os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
+        db = g._database = sqlite3.connect(DATABASE)
+        db.row_factory = sqlite3.Row
+    return db
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+# ---------------------------------------------------
 
 def est_authentifie():
     return session.get('authentifie')
@@ -27,6 +48,9 @@ def authentification():
             return render_template('formulaire_authentification.html', error=True)
     return render_template('formulaire_authentification.html', error=False)
 
+# --------- Routes clients existantes (utilisent database.db) ----------
+# Si tu veux garder la table clients dans database.db, laisse ces routes.
+# Sinon migre-les vers la nouvelle DB en adaptant le schéma.
 @app.route('/fiche_client/<int:post_id>')
 def Readfiche(post_id):
     conn = sqlite3.connect('database.db')
@@ -87,23 +111,30 @@ def auth_user():
 
     return render_template("auth_user.html")
 
+# ---------- Nouvelles routes pour les tâches (TP) ----------
+@app.route('/taches')
+def lister_taches():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id, title, description, due_date, is_done, created_at FROM tasks ORDER BY created_at DESC")
+    tasks = cur.fetchall()
+    return render_template('taches_liste.html', tasks=tasks)
+
+@app.route('/taches/ajouter', methods=['GET', 'POST'])
+def ajouter_tache():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        due_date = request.form.get('due_date')  # optionnel
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("INSERT INTO tasks (title, description, due_date) VALUES (?, ?, ?)",
+                    (title, description, due_date))
+        conn.commit()
+        return redirect(url_for('lister_taches'))
+    return render_template('taches_ajouter.html')
+# -------------------------------------------------------------
+
+# Ne pas exécuter app.run en production WSGI
 if __name__ == "__main__":
     app.run(debug=True)
-import os
-import sqlite3
-from flask import g
-
-DATABASE = os.path.join(os.path.dirname(__file__), 'data', 'tasks.sqlite')
-
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row
-    return db
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
